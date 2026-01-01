@@ -1,0 +1,53 @@
+{
+  "name": "agents-md-extension",
+  "displayName": "AGENTS.md Sync",
+  "publisher": "kamil",
+  "version": "0.0.1",
+  "description": "Ensures AGENTS.md and CLAUDE.md are kept in sync via symlink/rename on save.",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kamilio/agents-md-vscode-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kamilio/agents-md-vscode-extension/issues"
+  },
+  "homepage": "https://github.com/kamilio/agents-md-vscode-extension#readme",
+  "type": "commonjs",
+  "main": "./dist/src/extension.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -p tsconfig.json -w",
+    "test": "vitest run",
+    "package": "npm run build && vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.4.2",
+    "@vscode/vsce": "^3.6.0",
+    "memfs": "^4.17.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "AGENTS.md Sync",
+      "properties": {
+        "agentsMdSync.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable syncing between AGENTS.md and CLAUDE.md on save."
+        }
+      }
+    }
+  }
+}
