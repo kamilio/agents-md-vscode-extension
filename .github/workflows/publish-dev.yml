@@ -1,0 +1,56 @@
+name: Publish Extension (Dev)
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: publish-dev
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+
+      - name: Compute dev version from tags
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          latest_tag="$(git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*' 2>/dev/null || true)"
+          if [[ -n "${latest_tag}" ]]; then
+            base="${latest_tag#v}"
+            distance="$(git rev-list --count "${latest_tag}..HEAD")"
+          else
+            base="0.0.0"
+            distance="$(git rev-list --count HEAD)"
+          fi
+
+          # Ensure uniqueness across reruns (same commit) via run number + attempt.
+          version="${base}-dev.${distance}.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Publishing version: ${version}"
+
+      - name: Publish to VS Code Marketplace (pre-release)
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx vsce publish "${{ steps.version.outputs.version }}" --pre-release --no-git-tag-version -p "$VSCE_PAT"

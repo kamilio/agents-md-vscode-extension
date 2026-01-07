@@ -1,8 +1,8 @@
 {
   "name": "agents-md-extension",
   "displayName": "AGENTS.md Sync",
-  "publisher": "kamil",
-  "version": "0.0.1",
+  "publisher": "kamiljopek",
+  "version": "0.0.0-dev.0",
   "description": "Ensures AGENTS.md and CLAUDE.md are kept in sync via symlink/rename on save.",
   "license": "ISC",
   "repository": {

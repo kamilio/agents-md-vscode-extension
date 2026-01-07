@@ -21,7 +21,12 @@ This happens without prompts.
 
 ## Publishing
 
-The extension is automatically published to the VS Code Marketplace when you create a GitHub Release.
+The extension is automatically published to the VS Code Marketplace from GitHub Actions:
+
+- Every commit to `main` publishes a **pre-release** build with a `-dev...` version.
+- Pushing a tag like `v1.2.3` publishes the **stable** `1.2.3` version.
+
+`package.json`'s `version` is treated as a local/dev placeholder; tags control the published base version.
 
 ### One-time setup
 
@@ -47,10 +52,7 @@ The extension is automatically published to the VS Code Marketplace when you cre
    - Value: paste your token
    - Click "Add secret"
 
-### Releasing a new version
+### Bumping the base version (tags)
 
-1. Update `version` in package.json
-2. Update CHANGELOG.md
-3. Commit and push to main
-4. Create a GitHub Release (e.g., tag `v0.1.0`)
-5. The workflow will automatically publish to the Marketplace
+1. Create and push a tag like `v0.2.0`: `git tag v0.2.0 && git push origin v0.2.0`
+2. Subsequent commits on `main` publish `0.2.0-dev...` pre-releases automatically.
