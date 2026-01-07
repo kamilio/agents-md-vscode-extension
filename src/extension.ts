@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { nodeFs } from './nodeFs';
 import { syncAgentsAndClaude } from './sync';
 
-let isRunning = false;
+const runningFor = new Set<string>();
 
 function isAgentsOrClaude(doc: vscode.TextDocument): boolean {
   const base = path.basename(doc.uri.fsPath);
@@ -15,50 +15,47 @@ export function activate(context: vscode.ExtensionContext) {
   const enabled = config.get<boolean>('enabled', true);
   if (!enabled) return;
 
-  const runForFolder = async (workspaceFolder: vscode.WorkspaceFolder) => {
-    if (isRunning) return;
-    isRunning = true;
+  const runForDirectory = async (directoryPath: string) => {
+    if (runningFor.has(directoryPath)) return;
+    runningFor.add(directoryPath);
     try {
-      await syncAgentsAndClaude(nodeFs, { workspaceFolder: workspaceFolder.uri.fsPath });
+      await syncAgentsAndClaude(nodeFs, { workspaceFolder: directoryPath });
     } finally {
-      isRunning = false;
+      runningFor.delete(directoryPath);
     }
   };
 
   const runForUri = async (uri: vscode.Uri) => {
+    if (uri.scheme !== 'file') return;
     const folder = vscode.workspace.getWorkspaceFolder(uri);
     if (!folder) return;
-    await runForFolder(folder);
+
+    await runForDirectory(path.dirname(uri.fsPath));
   };
 
   const onSave = vscode.workspace.onDidSaveTextDocument(async (doc: vscode.TextDocument) => {
     if (!isAgentsOrClaude(doc)) return;
     await runForUri(doc.uri);
-
-    const folderUri = vscode.Uri.file(path.dirname(doc.uri.fsPath));
-    const agentsUri = vscode.Uri.file(path.join(folderUri.fsPath, 'AGENTS.md'));
-    const claudeUri = vscode.Uri.file(path.join(folderUri.fsPath, 'CLAUDE.md'));
-
-    try {
-      await vscode.workspace.fs.stat(agentsUri);
-      await vscode.commands.executeCommand('vscode.open', agentsUri, { preview: true, preserveFocus: true });
-    } catch {
-      // ignore
-    }
-
-    try {
-      await vscode.workspace.fs.stat(claudeUri);
-      await vscode.commands.executeCommand('vscode.open', claudeUri, { preview: true, preserveFocus: true });
-    } catch {
-      // ignore
-    }
   });
 
   context.subscriptions.push(onSave);
 
-  for (const folder of vscode.workspace.workspaceFolders ?? []) {
-    void runForFolder(folder);
-  }
+  const initialSync = async () => {
+    for (const folder of vscode.workspace.workspaceFolders ?? []) {
+      await runForDirectory(folder.uri.fsPath);
+    }
+
+    const candidates = await vscode.workspace.findFiles(
+      '**/{AGENTS.md,CLAUDE.md}',
+      '**/{node_modules,.git,dist,out}/**',
+    );
+    const directories = new Set(candidates.map((uri) => path.dirname(uri.fsPath)));
+    for (const directory of directories) {
+      await runForDirectory(directory);
+    }
+  };
+
+  void initialSync();
 }
 
 export function deactivate() {
