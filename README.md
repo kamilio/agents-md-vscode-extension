@@ -23,10 +23,13 @@ This happens without prompts.
 
 The extension is automatically published to the VS Code Marketplace from GitHub Actions:
 
-- Every commit to `main` publishes a **pre-release** build with a `-dev...` version.
+- Every commit to `main` publishes a **pre-release** build.
 - Pushing a tag like `v1.2.3` publishes the **stable** `1.2.3` version.
 
-`package.json`'s `version` is treated as a local/dev placeholder; tags control the published base version.
+VS Marketplace currently only supports `major.minor.patch` (no semver pre-release labels like `-dev.1`), so this repo follows the recommended convention:
+
+- Stable releases use an even `minor` (example: `0.2.x`)
+- Pre-releases use the next odd `minor` (example: `0.3.x`)
 
 ### One-time setup
 

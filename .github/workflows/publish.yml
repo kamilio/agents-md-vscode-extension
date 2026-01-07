@@ -13,6 +13,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Validate release tag version
+        shell: bash
+        run: |
+          set -euo pipefail
+          v="${GITHUB_REF_NAME#v}"
+          IFS='.' read -r major minor patch <<< "$v"
+          if (( minor % 2 != 0 )); then
+            echo "Release tags must use an even minor version (got ${v})."
+            echo "Use odd minor versions for pre-releases and even minor versions for stable releases."
+            exit 1
+          fi
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
