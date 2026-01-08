@@ -14,6 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
   const config = vscode.workspace.getConfiguration('agentsMdSync');
   const enabled = config.get<boolean>('enabled', true);
   if (!enabled) return;
+  const syncOnStartup = config.get<boolean>('syncOnStartup', false);
 
   const runForDirectory = async (directoryPath: string) => {
     if (runningFor.has(directoryPath)) return;
@@ -55,7 +56,9 @@ export function activate(context: vscode.ExtensionContext) {
     }
   };
 
-  void initialSync();
+  if (syncOnStartup) {
+    void initialSync();
+  }
 }
 
 export function deactivate() {

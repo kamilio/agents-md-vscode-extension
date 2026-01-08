@@ -46,6 +46,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enable syncing between AGENTS.md and CLAUDE.md on save."
+        },
+        "agentsMdSync.syncOnStartup": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run a one-time sync across the workspace on startup (may touch many folders)."
         }
       }
     }
